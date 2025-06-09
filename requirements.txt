@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+moviepy
+openai
+requests
+whisper
+transformers
+ffmpeg-python
+scipy
+python-multipart
