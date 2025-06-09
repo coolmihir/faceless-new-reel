@@ -4,11 +4,9 @@ pydantic
 requests
 python-multipart
 
-moviepy
+moviepy==1.0.3
 ffmpeg-python
 scipy
 
 ctranslate2
 faster-whisper
-
-transformers  # optional — remove if not using it
