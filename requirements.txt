@@ -1,21 +1,14 @@
-# Web framework
 fastapi
 uvicorn
-
-# Data handling
 pydantic
 requests
 python-multipart
 
-# Media processing
 moviepy
 ffmpeg-python
 scipy
 
-# AI + transcription
-openai-whisper
-transformers
+ctranslate2
+faster-whisper
 
-# Optional: for script generation via HuggingFace or OpenRouter (if you add later)
-# openrouter
-# huggingface_hub
+transformers  # optional — remove if not using it
