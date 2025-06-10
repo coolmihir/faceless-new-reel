@@ -1,9 +1,9 @@
 # Use an official Python image
 FROM python:3.10-slim
 
-# Install build dependencies for Pillow and MoviePy
+# Install build dependencies for Pillow and MoviePy, **including ImageMagick**
 RUN apt-get update && \
-    apt-get install -y gcc ffmpeg libsm6 libxext6 libgl1 libglib2.0-0 \
+    apt-get install -y gcc ffmpeg imagemagick libsm6 libxext6 libgl1 libglib2.0-0 \
     libjpeg-dev zlib1g-dev && \
     apt-get clean
 
