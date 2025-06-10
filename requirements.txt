@@ -10,3 +10,4 @@ scipy
 
 ctranslate2
 faster-whisper
+Pillow==9.5.0
