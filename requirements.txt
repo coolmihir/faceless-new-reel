@@ -11,4 +11,3 @@ scipy
 ctranslate2
 faster-whisper
 Pillow==9.4.0
---only-binary=:all:
