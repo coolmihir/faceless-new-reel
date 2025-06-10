@@ -4,7 +4,7 @@ pydantic
 requests
 python-multipart
 
-moviepy==1.0.3
+moviepy==1.0.2
 ffmpeg-python
 scipy
 
