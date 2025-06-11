@@ -1,12 +1,10 @@
-import requests
 import os
+import requests
 
-def elevenlabs_tts(script, api_key, voice_id, task_id):
-    filename = f"{task_id}.mp3"
-    output_dir = "static/outputs"
-    output_path = os.path.join(output_dir, filename)
-
+def elevenlabs_tts(script, api_key, voice_id, filename):
+    output_path = os.path.join("static/outputs", filename)
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+
     headers = {
         "xi-api-key": api_key,
         "Content-Type": "application/json"
@@ -22,10 +20,9 @@ def elevenlabs_tts(script, api_key, voice_id, task_id):
     }
 
     response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()  # fail early if API call fails
+    response.raise_for_status()  # good to fail fast if error
 
-    os.makedirs(output_dir, exist_ok=True)  # ensure dir exists
     with open(output_path, "wb") as f:
         f.write(response.content)
 
-    return output_path  # always returns full correct path
+    return output_path
