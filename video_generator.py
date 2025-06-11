@@ -1,26 +1,25 @@
 import os
 from utils import script_gen, tts, stock_video, merger, captions
 
-def process_video(data, task_id, status_tracker):
+def process_video(topic, pexels_api_key, elevenlabs_api_key, voice_id, output_path):
     try:
+        # Create output directory if it doesn't exist
         os.makedirs("static/outputs", exist_ok=True)
 
-        status_tracker[task_id] = "Generating script..."
-        script = script_gen.generate_script(data.topic)
+        # Step 1: Generate script
+        script = script_gen.generate_script(topic)
 
-        status_tracker[task_id] = "Generating voiceover..."
-        audio = tts.elevenlabs_tts(script, data.elevenlabs_api_key, data.voice_id, task_id)
+        # Step 2: Generate voiceover
+        audio_path = tts.elevenlabs_tts(script, elevenlabs_api_key, voice_id, "temp_audio")
 
-        status_tracker[task_id] = "Fetching video..."
-        video = stock_video.download_video(data.topic, data.pexels_api_key, task_id)
+        # Step 3: Fetch relevant stock video
+        video_path = stock_video.download_video(topic, pexels_api_key, "temp_video")
 
-        status_tracker[task_id] = "Generating captions..."
-        text = captions.transcribe(audio)
+        # Step 4: Generate captions from voiceover
+        captions_text = captions.transcribe(audio_path)
 
-        status_tracker[task_id] = "Merging final reel..."
-        output_path = f"static/outputs/{task_id}.mp4"
-        merger.merge(video, audio, text, output_path)
+        # Step 5: Merge everything into a vertical reel
+        merger.merge(video_path, audio_path, captions_text, output_path)
 
-        status_tracker[task_id] = "Done ✅"
     except Exception as e:
-        status_tracker[task_id] = f"Failed ❌: {str(e)}"
+        raise RuntimeError(f"Video generation failed: {e}")
