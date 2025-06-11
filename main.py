@@ -5,12 +5,13 @@ from pydantic import BaseModel
 import uuid
 import os
 
-from video_generator import process_video  # assuming you have this
+from video_generator import process_video
+from utils.upload_to_r2 import upload_to_r2  # <-- New import for R2
 
 # Initialize FastAPI app
 app = FastAPI()
 
-# Serve static files from the "static" directory
+# Serve static files from the "static" directory (optional)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Create output directory if it doesn't exist
@@ -23,29 +24,27 @@ class GenerationRequest(BaseModel):
     elevenlabs_api_key: str
     voice_id: str
 
-# Response model (optional)
-class GenerationResponse(BaseModel):
-    video_url: str
-
 # /generate endpoint
 @app.post("/generate")
 async def generate_video(request: GenerationRequest):
     try:
-        # Unique filename for each request
+        # Unique task ID and video output path
         task_id = str(uuid.uuid4())
         output_path = f"static/outputs/{task_id}.mp4"
 
-        # Process video using your generator
-        process_video(
-            topic=request.topic,
-            pexels_api_key=request.pexels_api_key,
-            elevenlabs_api_key=request.elevenlabs_api_key,
-            voice_id=request.voice_id,
-            output_path=output_path
-        )
+        # Wrap the data to pass to video generator
+        data = request
 
-        # Return URL to download video
-        return {"video_url": f"/{output_path}"}
+        # Temporary tracker (optional, you can remove if not using progress tracking)
+        status_tracker = {}
+
+        # Process the video (local generation)
+        process_video(data, task_id, status_tracker)
+
+        # Upload to Cloudflare R2
+        uploaded_url = upload_to_r2(output_path)
+
+        return {"video_url": uploaded_url}
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
