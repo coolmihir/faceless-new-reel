@@ -1,32 +1,51 @@
-from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from video_generator import process_video
 import uuid
 import os
 
-app = FastAPI()
-status_tracker = {}
+from video_generator import process_video  # assuming you have this
 
-class RequestBody(BaseModel):
+# Initialize FastAPI app
+app = FastAPI()
+
+# Serve static files from the "static" directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Create output directory if it doesn't exist
+os.makedirs("static/outputs", exist_ok=True)
+
+# Request model
+class GenerationRequest(BaseModel):
     topic: str
+    pexels_api_key: str
     elevenlabs_api_key: str
     voice_id: str
-    pexels_api_key: str
 
+# Response model (optional)
+class GenerationResponse(BaseModel):
+    video_url: str
+
+# /generate endpoint
 @app.post("/generate")
-def generate_reel(data: RequestBody, background_tasks: BackgroundTasks):
-    task_id = str(uuid.uuid4())
-    status_tracker[task_id] = "Starting..."
-    background_tasks.add_task(process_video, data, task_id, status_tracker)
-    return {"task_id": task_id}
+async def generate_video(request: GenerationRequest):
+    try:
+        # Unique filename for each request
+        task_id = str(uuid.uuid4())
+        output_path = f"static/outputs/{task_id}.mp4"
 
-@app.get("/status/{task_id}")
-def check_status(task_id: str):
-    return {"status": status_tracker.get(task_id, "Invalid Task ID")}
+        # Process video using your generator
+        process_video(
+            topic=request.topic,
+            pexels_api_key=request.pexels_api_key,
+            elevenlabs_api_key=request.elevenlabs_api_key,
+            voice_id=request.voice_id,
+            output_path=output_path
+        )
 
-@app.get("/result/{task_id}")
-def get_result(task_id: str):
-    final_path = f"static/outputs/{task_id}.mp4"
-    if os.path.exists(final_path):
-        return {"video_url": f"/{final_path}"}
-    raise HTTPException(status_code=404, detail="Video not ready")
+        # Return URL to download video
+        return {"video_url": f"/{output_path}"}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
